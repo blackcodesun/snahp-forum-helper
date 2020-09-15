@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Snahp Forum Helper
 // @namespace    http://tampermonkey.net/
-// @version      1.0
+// @version      0.91
 // @description  Highlight base64 or separated mega link/key, then press Ctrl+Shift to combine, decode and copy link into clipboard so jDownloader picks it up.  Please reference my github page (https://github.com/blackcodesun) if you use any of my code.  Thanks!
 // @author       blackcodesun@gmail.com, https://github.com/blackcodesun
 // @match        http*://*.snahp.it/*
@@ -15,8 +15,8 @@
 Megalink Key: !VlKBHwg9Bbl2XxQXnD6cGc2ECLYM4dfCaMVWSdEQxiE
 
 *EXAMPLE PATTERN - LINK & KEY
-Mega: #P!eH7C8YSC
-Key: !Jc8J3Knuoq1wPsGcGulc5Q
+Mega - #P!eH7C8YSC
+Key - !Jc8J3Knuoq1wPsGcGulc5Q
 
 *EXAMPLE - LINK & KEY W/ REMOVE WORD
 L: Lm56LyMhOXVnVkJSQ0M=
@@ -29,13 +29,14 @@ Add mega to Link. Remove #$HisTORYoFMaGic%$ from Key
 }(function ($, window, document) {
     "use strict";
     $(document).ready(function () {
-        // DOM objects return Unicode (16-bit) strings... convert string to UTF-8 before Encoding. By Brandonscript, http://stackoverflow.com/questions/30106476/using-javascripts-atob-to-decode-base64-doesnt-properly-decode-utf-8-strings
-        function b64EncodeUnicode(str) {
+        // DOM objects return Unicode (16-bit) strings... convert string to UTF-8 before Encoding.
+        // Function by Brandonscript, http://stackoverflow.com/questions/30106476/using-javascripts-atob-to-decode-base64-doesnt-properly-decode-utf-8-strings
+        function base64EncodeUnicode(str) {
             return btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, function toSolidBytes(ignore, p1) {
                 return String.fromCharCode("0x" + p1);
             }));
         }
-        function b64DecodeUnicode(str) {
+        function base64DecodeUnicode(str) {
             return decodeURIComponent(atob(str).split("").map(function (c) {
                 return "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2);
             }).join(""));
@@ -47,7 +48,7 @@ Add mega to Link. Remove #$HisTORYoFMaGic%$ from Key
                 return false;
             }
             try {
-                return b64EncodeUnicode(b64DecodeUnicode(str)) === str;
+                return base64EncodeUnicode(base64DecodeUnicode(str)) === str;
             } catch (ignore) {
                 return false;
             }
@@ -57,11 +58,11 @@ Add mega to Link. Remove #$HisTORYoFMaGic%$ from Key
         function base64Decode(str) {
             var i = 0;
             var maxDecodes = 100;
-            console.log({"str": str, "maxDecodes": maxDecodes});
+            var originalStr = str;
             while (isBase64(str) && i < maxDecodes) {
-                str = b64DecodeUnicode(str);
+                str = base64DecodeUnicode(str);
                 i += 1;
-                console.log({"base64Decode": i, "str": str});
+                console.log({"maxDecodes": maxDecodes, "iterations": i, "base64Decode": originalStr, "str": str});
             }
             return str;
         }
@@ -84,7 +85,7 @@ Add mega to Link. Remove #$HisTORYoFMaGic%$ from Key
             var link = "";
             var key = "";
             // Link & Key Pattern
-            var linkKeyPattern = /^[\s\S]*?(?:L|M|Mega|Link)\s*:\s*?(\S+)[\s\S]*?(?:K|Key)\s*:\s*?(\S+)[\s\S]*$/gim;
+            var linkKeyPattern = /^[\s\S]*?(?:L|M|Mega|Link)\s*(?:\:|\-)\s*?(\S+)[\s\S]*?(?:K|Key)\s*(?:\:|\-)\s*?(\S+)[\s\S]*$/gim;
             var linkKeyMatch = linkKeyPattern.exec(selection);
             if (linkKeyMatch && linkKeyMatch.length === 3) {
                 link = linkKeyMatch[1];
@@ -107,19 +108,21 @@ Add mega to Link. Remove #$HisTORYoFMaGic%$ from Key
             //Remove Linebreaks
             link = removeLinebreaks(link);
             key = removeLinebreaks(key);
+            console.log({"removeLinebreaksLink": link, "removeLinebreaksKey": key});
 
             // Base64 decode link many times
             link = base64Decode(link);
             key = base64Decode(key);
+            console.log({"base64DecodeLink": link, "base64DecodeKey": key});
 
             // Combine link and key
             if (key.length > 0) {
-                link = link + key;
-                console.log({"combinedLinkAndKey": link});
+                link = link + "#" + key;
+                console.log({"combineLinkAndKey": link});
+                // Decode after link is combined with key
+                link = base64Decode(link);
+                console.log({"base64DecodeLinkAndKey": link});
             }
-
-            // Decode after link is combined with key
-            link = base64Decode(link);
 
             // Remove Words from link
             var removeWords = [];
@@ -149,7 +152,10 @@ Add mega to Link. Remove #$HisTORYoFMaGic%$ from Key
             // if URL pattern is found,
             var urlPattern = /^(http|https|ftp|ftps):\/\/\S+$/gi;
             if (urlPattern.test(link)) {
+                console.log({"pasting": link});
                 navigator.clipboard.writeText(link);
+            } else {
+                console.log({"noPasteNotURL": link});
             }
             console.timeEnd("scrapeTime");
         }

@@ -80,7 +80,7 @@
                 console.log({"link": link, "key": key});
             } else {
                 // Link Only Pattern
-                var linkPattern = /^[\s\S]*?(?:MegaLink\sKey|Base64x2)\s*:\s*?(\S+)[\s\S]*$/gim;
+                var linkPattern = /^[\s\S]*?(?:MegaLink\sKey|Base64x2|L|M|Mega|Link|K|Key)\s*(?:\:|\-)\s*?(\S+)[\s\S]*$/gim;
                 var linkMatch = linkPattern.exec(selection);
                 if (linkMatch && linkMatch.length === 2) {
                     link = linkMatch[1];

@@ -8,4 +8,5 @@ Megalink Key: !VlKBHwg9Bbl2XxQXnD6cGc2ECLYM4dfCaMVWSdEQxiE
 *EXAMPLE PATTERN - LINK & KEY
 
 Mega: #P!eH7C8YSC
+
 Key: !Jc8J3Knuoq1wPsGcGulc5Q

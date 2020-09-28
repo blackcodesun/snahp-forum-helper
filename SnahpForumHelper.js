@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Snahp Forum Helper
 // @namespace    http://tampermonkey.net/
-// @version      0.92
+// @version      0.93
 // @description  Highlight base64 or separated mega link/key, then press Ctrl+Alt to combine, decode and copy link into clipboard so jDownloader picks it up.  Please reference my github page (https://github.com/blackcodesun) if you use any of my code.  Thanks!
 // @author       blackcodesun@gmail.com, https://github.com/blackcodesun
 // @match        http*://*.snahp.it/*
@@ -56,10 +56,20 @@
 
         // Removes line breaks from a string
         function removeLinebreaks(str) {
-            var linebreakPattern = /(?:\r\n|\r|\n)/gm;
+            var linebreakPattern = /(\r\n|\r|\n)/gm;
             if (linebreakPattern.test(str)) {
                 str = str.replace(linebreakPattern, "");
                 console.log({"removingLinebreaks": str});
+            }
+            return str;
+        }
+
+        // Removes ancillary code block data
+        function removeCodeBlock(str) {
+            var codeBlockPattern = /CODE:\sSELECT\sALLEXPANDCOPY/gm;
+            if (codeBlockPattern.test(str)) {
+                str = str.replace(codeBlockPattern, "");
+                console.log({"removingCodeBlockPattern": str});
             }
             return str;
         }
@@ -69,6 +79,7 @@
             console.time("scrapeTime");
             var selection = window.getSelection().toString();
             console.log({"selection": selection});
+            selection = removeCodeBlock(selection);
             var link = "";
             var key = "";
             // Link & Key Pattern

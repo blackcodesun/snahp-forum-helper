@@ -42,9 +42,8 @@
         }
 
         // Base64 decode string until it's not a base64 string
-        function base64Decode(str) {
+        function base64Decode(str, maxDecodes) {
             var i = 0;
-            var maxDecodes = 100;
             var originalStr = str;
             while (isBase64(str) && i < maxDecodes) {
                 str = base64DecodeUnicode(str);
@@ -109,8 +108,8 @@
             console.log({"removeLinebreaksLink": link, "removeLinebreaksKey": key});
 
             // Base64 decode link many times
-            link = base64Decode(link);
-            key = base64Decode(key);
+            link = base64Decode(link, 6);
+            key = base64Decode(key, 6);
             console.log({"base64DecodeLink": link, "base64DecodeKey": key});
 
             // Combine link and key
@@ -118,7 +117,7 @@
                 link = link + "#" + key;
                 console.log({"combineLinkAndKey": link});
                 // Decode after link is combined with key
-                link = base64Decode(link);
+                link = base64Decode(link, 6);
                 console.log({"base64DecodeLinkAndKey": link});
             }
 
